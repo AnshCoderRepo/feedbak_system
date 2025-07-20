@@ -80,7 +80,12 @@ class ApiService {
 
   // Feedback endpoints
   async createFeedback(feedback: FeedbackCreate): Promise<Feedback> {
-    const response: AxiosResponse<Feedback> = await this.api.post('/feedback/', feedback);
+    // Convert sentiment to uppercase for the backend
+    const payload = {
+      ...feedback,
+      sentiment: feedback.sentiment.toUpperCase()
+    };
+    const response: AxiosResponse<Feedback> = await this.api.post('/feedback/', payload);
     return response.data;
   }
 

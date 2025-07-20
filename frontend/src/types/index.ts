@@ -19,7 +19,7 @@ export interface Feedback {
   updated_at?: string
   acknowledged: boolean
   acknowledged_at?: string
-  tags?: string
+  tags?: string[]
   is_anonymous: boolean
   employee_comment?: string
   employee?: User
@@ -27,12 +27,12 @@ export interface Feedback {
 }
 
 export interface FeedbackCreate {
-  employee_id: number
-  strengths: string
-  areas_to_improve: string
-  sentiment: 'positive' | 'neutral' | 'negative'
-  tags?: string
-  is_anonymous?: boolean
+  employee_id: number;
+  strengths: string;
+  areas_to_improve: string;
+  sentiment: 'positive' | 'neutral' | 'negative';
+  tags?: string[];
+  is_anonymous?: boolean;
 }
 
 export interface FeedbackUpdate {

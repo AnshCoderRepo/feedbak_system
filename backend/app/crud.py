@@ -53,7 +53,7 @@ def create_feedback(db: Session, feedback: schemas.FeedbackCreate, manager_id: i
         strengths=feedback.strengths,
         areas_to_improve=feedback.areas_to_improve,
         sentiment=feedback.sentiment,
-        tags=",".join(feedback.tags) if feedback.tags else "",
+        tags=",".join(feedback.tags) if feedback.tags and isinstance(feedback.tags, list) else "",
         is_anonymous=feedback.is_anonymous
     )
     db.add(db_feedback)
@@ -80,8 +80,8 @@ def update_feedback(db: Session, feedback_id: int, feedback_update: schemas.Feed
         return None
     
     update_data = feedback_update.dict(exclude_unset=True)
-    if 'tags' in update_data and update_data['tags']:
-        update_data['tags'] = ",".join(update_data['tags'])
+    if 'tags' in update_data and update_data['tags'] is not None:
+        update_data['tags'] = ",".join(update_data['tags']) if isinstance(update_data['tags'], list) else ""
     
     for field, value in update_data.items():
         setattr(db_feedback, field, value)

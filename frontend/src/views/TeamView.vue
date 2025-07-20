@@ -223,11 +223,13 @@ const viewFeedback = (member: User) => {
   router.push(`/feedback?employee=${member.id}`)
 }
 
-const formatDate = (dateString: string) => {
+const formatDate = (dateString?: string | null) => {
+  if (!dateString) return 'N/A';
   return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
     month: 'short',
     day: 'numeric'
-  })
+  });
 }
 
 onMounted(() => {

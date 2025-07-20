@@ -67,13 +67,27 @@ class FeedbackResponse(FeedbackBase):
     manager: Optional[UserResponse] = None
     
     @property
-    def tags_list(self) -> List[str]:
-        if isinstance(self.tags, str):
+    def tags(self) -> List[str]:
+        if hasattr(self, '_tags'):
+            return self._tags
+        if isinstance(self.__dict__.get('tags'), str):
             return [tag.strip() for tag in self.tags.split(',') if tag.strip()]
-        return self.tags or []
+        return self.__dict__.get('tags') or []
+    
+    @tags.setter
+    def tags(self, value):
+        if isinstance(value, str):
+            self._tags = [tag.strip() for tag in value.split(',') if tag.strip()]
+        elif isinstance(value, list):
+            self._tags = value
+        else:
+            self._tags = []
     
     class Config:
         from_attributes = True
+        json_encoders = {
+            list: lambda v: v  # Ensure lists are properly serialized
+        }
 
 class Feedback(FeedbackResponse):
     pass

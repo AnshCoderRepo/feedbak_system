@@ -187,12 +187,14 @@ const teamMembers = ref<User[]>([])
 const submitting = ref(false)
 const submitError = ref('')
 
-const form = ref<FeedbackCreate>({
+type Sentiment = 'positive' | 'neutral' | 'negative'
+
+const form = ref({
   employee_id: 0,
   strengths: '',
   areas_to_improve: '',
-  sentiment: '' as any,
-  tags: '',
+  sentiment: 'positive' as Sentiment,
+  tags: [] as string[],
   is_anonymous: false
 })
 
@@ -207,18 +209,20 @@ const validateForm = () => {
 
   if (!form.value.sentiment) {
     errors.value.sentiment = 'Please select a sentiment'
+  } else if (!['positive', 'neutral', 'negative'].includes(form.value.sentiment)) {
+    errors.value.sentiment = 'Please select a valid sentiment (positive, neutral, or negative)'
   }
 
   if (!form.value.strengths.trim()) {
     errors.value.strengths = 'Please provide strengths feedback'
   } else if (form.value.strengths.trim().length < 10) {
-    errors.value.strengths = 'Please provide more detailed strengths feedback'
+    errors.value.strengths = 'Please provide more detailed strengths feedback (min 10 characters)'
   }
 
   if (!form.value.areas_to_improve.trim()) {
     errors.value.areas_to_improve = 'Please provide areas to improve'
   } else if (form.value.areas_to_improve.trim().length < 10) {
-    errors.value.areas_to_improve = 'Please provide more detailed improvement suggestions'
+    errors.value.areas_to_improve = 'Please provide more detailed improvement suggestions (min 10 characters)'
   }
 
   return Object.keys(errors.value).length === 0
@@ -233,17 +237,27 @@ const handleSubmit = async () => {
     submitting.value = true
     submitError.value = ''
 
-    await apiService.createFeedback({
-      ...form.value,
+    // Ensure tags is an array and filter out empty strings
+    const tags = Array.isArray(form.value.tags) 
+      ? form.value.tags.filter(tag => tag && tag.trim() !== '')
+      : []
+
+    const feedbackData = {
+      employee_id: form.value.employee_id,
       strengths: form.value.strengths.trim(),
       areas_to_improve: form.value.areas_to_improve.trim(),
-      tags: form.value.tags.trim() || undefined
-    })
+      sentiment: form.value.sentiment,
+      tags: tags,
+      is_anonymous: form.value.is_anonymous
+    }
 
-    // Redirect to feedback list with success message
+    console.log('Submitting feedback:', feedbackData) // For debugging
+    await apiService.createFeedback(feedbackData)
+
     router.push('/feedback')
   } catch (error: any) {
-    submitError.value = error.response?.data?.detail || 'Failed to submit feedback'
+    console.error('Error creating feedback:', error)
+    submitError.value = error.response?.data?.detail || 'Failed to submit feedback. Please try again.'
   } finally {
     submitting.value = false
   }
@@ -259,7 +273,6 @@ const fetchTeamMembers = async () => {
 }
 
 onMounted(() => {
-  // Redirect if not a manager
   if (!authStore.isManager) {
     router.push('/dashboard')
     return
